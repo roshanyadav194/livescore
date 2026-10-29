@@ -15,6 +15,8 @@ class _ScoringScreenState extends State<ScoringScreen> {
   int _wickets = 0;
   int _balls = 0; 
   int _completedOvers = 0;
+  int _innings = 1;
+  int? _targetScore;
   bool _isLoading = true;
 
   @override
@@ -36,6 +38,8 @@ class _ScoringScreenState extends State<ScoringScreen> {
           _wickets = matchData['wickets'] ?? 0;
           _completedOvers = matchData['completed_overs'] ?? 0;
           _balls = matchData['balls'] ?? 0;
+          _innings = matchData['innings'] ?? 1;
+          _targetScore = matchData['target_score'];
           _isLoading = false;
         });
       }
@@ -63,6 +67,19 @@ class _ScoringScreenState extends State<ScoringScreen> {
             'balls': newBalls,
           })
           .eq('match_code', widget.matchCode);
+          
+      // Check for a win in the 2nd Innings!
+      if (_innings == 2 && _targetScore != null && newRuns >= _targetScore!) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('MATCH OVER! Batting Team Wins!', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+              backgroundColor: Color(0xFF2ECC71),
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
+      }
     } catch (e) {
       debugPrint('Error updating score: $e');
     }
@@ -71,36 +88,49 @@ class _ScoringScreenState extends State<ScoringScreen> {
   void _addRuns(int runs) => _updateCloudScore(runsToAdd: runs, wicketsToAdd: 0, ballsToAdd: 1);
   
   void _addWicket() {
-    if (_wickets < 10) {
-      _updateCloudScore(runsToAdd: 0, wicketsToAdd: 1, ballsToAdd: 1);
+    if (_wickets < 10) _updateCloudScore(runsToAdd: 0, wicketsToAdd: 1, ballsToAdd: 1);
+  }
+
+  void _addExtra(String type) => _updateCloudScore(runsToAdd: 1, wicketsToAdd: 0, ballsToAdd: 0);
+
+  void _addByeOrLegBye(int runs) => _updateCloudScore(runsToAdd: runs, wicketsToAdd: 0, ballsToAdd: 1);
+
+  // THIS IS THE NEW INNINGS LOGIC
+  Future<void> _endInnings() async {
+    if (_innings == 1) {
+      int target = _runs + 1;
+      try {
+        await Supabase.instance.client
+            .from('matches')
+            .update({
+              'innings': 2,
+              'target_score': target,
+              'runs': 0,
+              'wickets': 0,
+              'completed_overs': 0,
+              'balls': 0,
+            })
+            .eq('match_code', widget.matchCode);
+            
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Innings Ended! Target set to $target.', style: const TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error ending innings: $e');
+      }
     }
-  }
-
-  void _addExtra(String type) {
-    // Wides and No Balls add 1 run but do NOT count as a legal ball
-    _updateCloudScore(runsToAdd: 1, wicketsToAdd: 0, ballsToAdd: 0);
-  }
-
-  void _addByeOrLegBye(int runs) {
-    // Byes/Leg Byes add runs AND count as a legal ball
-    _updateCloudScore(runsToAdd: runs, wicketsToAdd: 0, ballsToAdd: 1);
-  }
-
-  void _endInnings() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Innings Ended! Target set.', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Color(0xFF1C2541),
-      ),
-    );
-    // In Phase 7, this will swap teams and start the 2nd Innings!
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Live Match: ${widget.matchCode}', style: const TextStyle(color: Colors.white, fontSize: 16)),
+        title: Text('Live Match: ${widget.matchCode} (Innings $_innings)', style: const TextStyle(color: Colors.white, fontSize: 16)),
         backgroundColor: const Color(0xFF1C2541),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -109,7 +139,7 @@ class _ScoringScreenState extends State<ScoringScreen> {
         : Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
             width: double.infinity,
             decoration: const BoxDecoration(
               color: Color(0xFF1C2541), 
@@ -128,6 +158,22 @@ class _ScoringScreenState extends State<ScoringScreen> {
                   'Overs: $_completedOvers.$_balls',
                   style: const TextStyle(color: Colors.white, fontSize: 20),
                 ),
+                // NEW RUN CHASE DISPLAY
+                if (_innings == 2 && _targetScore != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange),
+                    ),
+                    child: Text(
+                      'Target: $_targetScore | Need ${_targetScore! - _runs} runs to win',
+                      style: const TextStyle(color: Colors.orange, fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -165,13 +211,16 @@ class _ScoringScreenState extends State<ScoringScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                // NEW ADVANCED RULES ROW
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildScoreButton('Byes\n(1)', Colors.grey, () => _addByeOrLegBye(1), isWide: true, fontSize: 16),
                     _buildScoreButton('Leg Byes\n(1)', Colors.grey, () => _addByeOrLegBye(1), isWide: true, fontSize: 16),
-                    _buildScoreButton('End\nInnings', const Color(0xFF1C2541), _endInnings, isWide: true, fontSize: 16, borderColor: Colors.redAccent),
+                    // Hides the "End Innings" button if we are already in the 2nd Innings
+                    if (_innings == 1)
+                      _buildScoreButton('End\nInnings', const Color(0xFF1C2541), _endInnings, isWide: true, fontSize: 16, borderColor: Colors.redAccent)
+                    else
+                      const SizedBox(width: 100, height: 70), // Empty space to keep layout balanced
                   ],
                 ),
               ],
