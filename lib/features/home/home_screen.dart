@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../match_setup/match_setup_screen.dart';
 import '../teams/create_team_screen.dart';
 import '../tournaments/tournament_hub_screen.dart';
-import '../players/add_player_screen.dart'; // <--- We imported your new Player screen!
+import '../players/add_player_screen.dart';
+import '../players/player_leaderboard_screen.dart'; // <--- We imported your new Leaderboard screen!
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -17,7 +18,6 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
-        // THIS allows the screen to scroll if the phone is small
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -67,13 +67,13 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // NEW ADD PLAYER CARD
+              // ADD PLAYER CARD
               _buildActionCard(
                 context,
                 title: 'Add Players',
                 subtitle: 'Build your team rosters',
                 icon: Icons.person_add,
-                color: Colors.cyan, // Cyan accent for players!
+                color: Colors.cyan, 
                 onTap: () {
                   Navigator.push(
                     context,
@@ -95,6 +95,23 @@ class HomeScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const TournamentHubScreen()),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              // NEW LEADERBOARD CARD
+              _buildActionCard(
+                context,
+                title: 'Player Leaderboards',
+                subtitle: 'Top run scorers & wicket takers',
+                icon: Icons.leaderboard,
+                color: Colors.purpleAccent, // Purple for the Purple Cap!
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PlayerLeaderboardScreen()),
                   );
                 },
               ),
