@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'features/match_setup/match_setup_screen.dart';
+import 'features/auth/login_screen.dart'; // <--- We changed this import!
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,14 +24,14 @@ class LiveScoreApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0B132B), // Dark Navy
-        primaryColor: const Color(0xFF2ECC71), // Cricket Green
+        scaffoldBackgroundColor: const Color(0xFF0B132B),
+        primaryColor: const Color(0xFF2ECC71),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1C2541), // Royal Blue
+          backgroundColor: Color(0xFF1C2541),
           elevation: 0,
         ),
       ),
-      home: const MatchSetupScreen(), // This is the magic line that connects your new screen!
+      home: const LoginScreen(), // <--- This makes the Login Screen appear first!
     );
   }
 }
