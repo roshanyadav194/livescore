@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import '../scoring/scoring_screen.dart'; // <--- This connects to your new screen!
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../scoring/scoring_screen.dart';
 
 class MatchSetupScreen extends StatefulWidget {
   const MatchSetupScreen({super.key});
@@ -11,6 +12,7 @@ class MatchSetupScreen extends StatefulWidget {
 
 class _MatchSetupScreenState extends State<MatchSetupScreen> {
   final TextEditingController _codeController = TextEditingController();
+  bool _isLoading = false;
 
   String generateMatchCode() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -20,22 +22,45 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
     );
   }
 
-  void _createNewMatch() {
+  Future<void> _createNewMatch() async {
+    setState(() => _isLoading = true);
     String newCode = generateMatchCode();
     
-    // This moves the app to the Scoring Screen when you tap the button!
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ScoringScreen(matchCode: newCode),
-      ),
-    );
+    try {
+      // THIS securely saves the new match code to your Supabase database
+      await Supabase.instance.client.from('matches').insert({
+        'match_code': newCode,
+      });
+
+      if (mounted) {
+        // Move the app to the Scoring Screen when cloud save is successful
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ScoringScreen(matchCode: newCode),
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error starting match: $error'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
-  void _joinMatch() {
+  void _joinMatch() async {
     String code = _codeController.text.trim().toUpperCase();
     if (code.length == 6) {
-      // This moves the app to the Scoring Screen as a spectator!
+      // Right now, this just opens the screen. We will add a database check in the next step!
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -72,9 +97,11 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
-              onPressed: _createNewMatch,
-              icon: const Icon(Icons.add_circle_outline, color: Color(0xFF0B132B)),
-              label: const Text('Create Match & Get Code', style: TextStyle(color: Color(0xFF0B132B), fontSize: 16)),
+              onPressed: _isLoading ? null : _createNewMatch,
+              icon: _isLoading 
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Color(0xFF0B132B), strokeWidth: 2))
+                  : const Icon(Icons.add_circle_outline, color: Color(0xFF0B132B)),
+              label: Text(_isLoading ? 'Starting...' : 'Create Match & Get Code', style: const TextStyle(color: Color(0xFF0B132B), fontSize: 16)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2ECC71),
                 padding: const EdgeInsets.symmetric(vertical: 16),
