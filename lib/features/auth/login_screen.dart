@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../match_setup/match_setup_screen.dart';
+import '../home/home_screen.dart'; // <--- 1. We imported your new Home Screen here!
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,7 +17,6 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     
     try {
-      // Sends a secure login link to the user's email using Supabase
       await Supabase.instance.client.auth.signInWithOtp(
         email: _emailController.text.trim(),
       );
@@ -29,10 +28,11 @@ class _LoginScreenState extends State<LoginScreen> {
             backgroundColor: Color(0xFF2ECC71),
           ),
         );
-        // For testing purposes right now, we will just move directly to the next screen
+        
+        // 2. We changed this to take the user to the HomeScreen (Dashboard) after logging in!
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MatchSetupScreen()),
+          MaterialPageRoute(builder: (context) => const HomeScreen()), 
         );
       }
     } catch (error) {
@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B132B), // Dark Navy Background
+      backgroundColor: const Color(0xFF0B132B),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -83,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 hintStyle: const TextStyle(color: Colors.white38),
                 prefixIcon: const Icon(Icons.email_outlined, color: Colors.white54),
                 filled: true,
-                fillColor: const Color(0xFF1C2541), // Royal Blue
+                fillColor: const Color(0xFF1C2541),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
