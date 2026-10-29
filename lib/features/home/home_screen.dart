@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../match_setup/match_setup_screen.dart';
 import '../teams/create_team_screen.dart';
+import '../tournaments/tournament_hub_screen.dart'; // <--- We imported your new screen!
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -11,7 +12,7 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('LiveScore Dashboard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
-        automaticallyImplyLeading: false, // Hides the back button since this is the main hub
+        automaticallyImplyLeading: false, 
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -27,7 +28,7 @@ class HomeScreen extends StatelessWidget {
               'What would you like to do today?',
               style: TextStyle(color: Colors.white54, fontSize: 16),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
 
             // MATCH ACTION CARD
             _buildActionCard(
@@ -35,7 +36,7 @@ class HomeScreen extends StatelessWidget {
               title: 'Play a Match',
               subtitle: 'Score a new game or join as spectator',
               icon: Icons.sports_cricket,
-              color: const Color(0xFF2ECC71), // Cricket Green
+              color: const Color(0xFF2ECC71), 
               onTap: () {
                 Navigator.push(
                   context,
@@ -44,7 +45,7 @@ class HomeScreen extends StatelessWidget {
               },
             ),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // TEAM ACTION CARD
             _buildActionCard(
@@ -52,11 +53,28 @@ class HomeScreen extends StatelessWidget {
               title: 'Manage Teams',
               subtitle: 'Create a new local squad',
               icon: Icons.shield,
-              color: const Color(0xFF3A506B), // Accent Blue
+              color: const Color(0xFF3A506B), 
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const CreateTeamScreen()),
+                );
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // NEW TOURNAMENT CARD
+            _buildActionCard(
+              context,
+              title: 'Tournament Hub',
+              subtitle: 'View league standings & NRR',
+              icon: Icons.emoji_events,
+              color: Colors.orangeAccent, // Golden accent for the trophy!
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TournamentHubScreen()),
                 );
               },
             ),
@@ -66,14 +84,13 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // A helper widget to create beautiful, tappable menu cards
   Widget _buildActionCard(BuildContext context, {required String title, required String subtitle, required IconData icon, required Color color, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1C2541), // Royal Blue
+          color: const Color(0xFF1C2541),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: color.withOpacity(0.5), width: 2),
         ),
@@ -89,9 +106,9 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                  Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 13)),
                 ],
               ),
             ),
