@@ -31,6 +31,7 @@ class _ScoringScreenState extends State<ScoringScreen> {
         .stream(primaryKey: ['id'])
         .eq('match_code', widget.matchCode)
         .listen((List> data) {
+
       if (data.isNotEmpty && mounted) {
         final matchData = data.first;
         setState(() {
