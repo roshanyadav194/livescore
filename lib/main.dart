@@ -7,8 +7,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Supabase.initialize(
-    url: 'https://your-project-url.supabase.co',
-    anonKey: 'your-anon-key',
+    url: 'https://aodiohcyblbuwavzopxr.supabase.co',
+    anonKey: 'sb_publishable_xWe2L-bCa6HWpThZL4-p8w_nCiz0kjr',
   );
 
   runApp(const ProviderScope(child: LiveScoreApp()));
