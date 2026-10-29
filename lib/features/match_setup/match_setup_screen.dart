@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import '../scoring/scoring_screen.dart'; // <--- This connects to your new screen!
 
 class MatchSetupScreen extends StatefulWidget {
   const MatchSetupScreen({super.key});
@@ -11,7 +12,6 @@ class MatchSetupScreen extends StatefulWidget {
 class _MatchSetupScreenState extends State<MatchSetupScreen> {
   final TextEditingController _codeController = TextEditingController();
 
-  // This function generates the random 6-character alphanumeric code
   String generateMatchCode() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     Random rnd = Random();
@@ -22,11 +22,12 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
 
   void _createNewMatch() {
     String newCode = generateMatchCode();
-    // Later, this will save the code to the Supabase database
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Match Created! Your share code is: $newCode', style: const TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF2ECC71), // Cricket Green
+    
+    // This moves the app to the Scoring Screen when you tap the button!
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScoringScreen(matchCode: newCode),
       ),
     );
   }
@@ -34,11 +35,11 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
   void _joinMatch() {
     String code = _codeController.text.trim().toUpperCase();
     if (code.length == 6) {
-      // Later, this will connect to Supabase Realtime to view the score
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Connecting to match $code...'),
-          backgroundColor: const Color(0xFF1C2541), // Royal Blue
+      // This moves the app to the Scoring Screen as a spectator!
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ScoringScreen(matchCode: code),
         ),
       );
     } else {
@@ -64,7 +65,6 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // SCORER SECTION
             const Text(
               'Start a New Match',
               style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
@@ -76,7 +76,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
               icon: const Icon(Icons.add_circle_outline, color: Color(0xFF0B132B)),
               label: const Text('Create Match & Get Code', style: TextStyle(color: Color(0xFF0B132B), fontSize: 16)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2ECC71), // Cricket Green
+                backgroundColor: const Color(0xFF2ECC71),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -84,7 +84,6 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
             
             const SizedBox(height: 48),
             
-            // DIVIDER
             Row(
               children: const [
                 Expanded(child: Divider(color: Colors.white24, thickness: 1)),
@@ -98,7 +97,6 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
             
             const SizedBox(height: 48),
 
-            // SPECTATOR SECTION
             const Text(
               'Join as a Spectator',
               style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
@@ -120,15 +118,15 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-                counterText: '', // Hides the character counter
+                counterText: '',
               ),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _joinMatch,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1C2541), // Royal Blue
-                side: const BorderSide(color: Color(0xFF2ECC71), width: 1), // Green outline
+                backgroundColor: const Color(0xFF1C2541),
+                side: const BorderSide(color: Color(0xFF2ECC71), width: 1),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
