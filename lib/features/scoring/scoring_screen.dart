@@ -23,7 +23,6 @@ class _ScoringScreenState extends State<ScoringScreen> {
     _setupRealtimeSubscription();
   }
 
-  // 📡 THIS IS THE MAGIC: It listens to the cloud and updates the screen instantly!
   void _setupRealtimeSubscription() {
     Supabase.instance.client
         .from('matches')
@@ -37,20 +36,19 @@ class _ScoringScreenState extends State<ScoringScreen> {
           _wickets = matchData['wickets'] ?? 0;
           _completedOvers = matchData['completed_overs'] ?? 0;
           _balls = matchData['balls'] ?? 0;
-          _isLoading = false; // Hides the loading spinner once connected
+          _isLoading = false;
         });
       }
     });
   }
 
-  // ☁️ THIS saves the score to the cloud every time you tap a button
   Future<void> _updateCloudScore({required int runsToAdd, required int wicketsToAdd, required int ballsToAdd}) async {
     int newRuns = _runs + runsToAdd;
     int newWickets = _wickets + wicketsToAdd;
     int newBalls = _balls + ballsToAdd;
     int newOvers = _completedOvers;
 
-    if (newBalls == 6) {
+    if (newBalls >= 6) {
       newOvers++;
       newBalls = 0;
     }
@@ -70,10 +68,8 @@ class _ScoringScreenState extends State<ScoringScreen> {
     }
   }
 
-  void _addRuns(int runs) {
-    _updateCloudScore(runsToAdd: runs, wicketsToAdd: 0, ballsToAdd: 1);
-  }
-
+  void _addRuns(int runs) => _updateCloudScore(runsToAdd: runs, wicketsToAdd: 0, ballsToAdd: 1);
+  
   void _addWicket() {
     if (_wickets < 10) {
       _updateCloudScore(runsToAdd: 0, wicketsToAdd: 1, ballsToAdd: 1);
@@ -81,8 +77,23 @@ class _ScoringScreenState extends State<ScoringScreen> {
   }
 
   void _addExtra(String type) {
-    // Extras add 1 run but do NOT count as a legal ball
+    // Wides and No Balls add 1 run but do NOT count as a legal ball
     _updateCloudScore(runsToAdd: 1, wicketsToAdd: 0, ballsToAdd: 0);
+  }
+
+  void _addByeOrLegBye(int runs) {
+    // Byes/Leg Byes add runs AND count as a legal ball
+    _updateCloudScore(runsToAdd: runs, wicketsToAdd: 0, ballsToAdd: 1);
+  }
+
+  void _endInnings() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Innings Ended! Target set.', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Color(0xFF1C2541),
+      ),
+    );
+    // In Phase 7, this will swap teams and start the 2nd Innings!
   }
 
   @override
@@ -97,7 +108,6 @@ class _ScoringScreenState extends State<ScoringScreen> {
         ? const Center(child: CircularProgressIndicator(color: Color(0xFF2ECC71)))
         : Column(
         children: [
-          // SCOREBOARD SECTION
           Container(
             padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
             width: double.infinity,
@@ -124,7 +134,6 @@ class _ScoringScreenState extends State<ScoringScreen> {
           
           const Spacer(),
 
-          // SCORING KEYPAD SECTION
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -137,7 +146,7 @@ class _ScoringScreenState extends State<ScoringScreen> {
                     _buildScoreButton('2', const Color(0xFF3A506B), () => _addRuns(2)),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -146,7 +155,7 @@ class _ScoringScreenState extends State<ScoringScreen> {
                     _buildScoreButton('6', const Color(0xFF2ECC71), () => _addRuns(6), textColor: const Color(0xFF0B132B)),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -155,24 +164,35 @@ class _ScoringScreenState extends State<ScoringScreen> {
                     _buildScoreButton('OUT', Colors.redAccent, _addWicket, isWide: true),
                   ],
                 ),
+                const SizedBox(height: 12),
+                // NEW ADVANCED RULES ROW
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildScoreButton('Byes\n(1)', Colors.grey, () => _addByeOrLegBye(1), isWide: true, fontSize: 16),
+                    _buildScoreButton('Leg Byes\n(1)', Colors.grey, () => _addByeOrLegBye(1), isWide: true, fontSize: 16),
+                    _buildScoreButton('End\nInnings', const Color(0xFF1C2541), _endInnings, isWide: true, fontSize: 16, borderColor: Colors.redAccent),
+                  ],
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildScoreButton(String label, Color bgColor, VoidCallback onTap, {bool isWide = false, Color textColor = Colors.white}) {
+  Widget _buildScoreButton(String label, Color bgColor, VoidCallback onTap, {bool isWide = false, Color textColor = Colors.white, double? fontSize, Color? borderColor}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: isWide ? 100 : 80,
-        height: 80,
+        height: 70,
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(isWide ? 20 : 40),
+          borderRadius: BorderRadius.circular(isWide ? 16 : 35),
+          border: borderColor != null ? Border.all(color: borderColor, width: 2) : null,
           boxShadow: [
             BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 4)),
           ],
@@ -180,7 +200,8 @@ class _ScoringScreenState extends State<ScoringScreen> {
         child: Center(
           child: Text(
             label,
-            style: TextStyle(color: textColor, fontSize: isWide ? 18 : 28, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: textColor, fontSize: fontSize ?? (isWide ? 18 : 28), fontWeight: FontWeight.bold),
           ),
         ),
       ),
