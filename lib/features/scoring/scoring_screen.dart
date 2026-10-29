@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ScoringScreen extends StatefulWidget {
   final String matchCode;
@@ -10,43 +11,78 @@ class ScoringScreen extends StatefulWidget {
 }
 
 class _ScoringScreenState extends State<ScoringScreen> {
-  // Local state for the scoreboard
   int _runs = 0;
   int _wickets = 0;
-  int _balls = 0; // Total legal deliveries in the current over
+  int _balls = 0; 
   int _completedOvers = 0;
+  bool _isLoading = true;
 
-  // Function to handle scoring runs
-  void _addRuns(int runs) {
-    setState(() {
-      _runs += runs;
-      _balls++;
-      if (_balls == 6) {
-        _completedOvers++;
-        _balls = 0;
+  @override
+  void initState() {
+    super.initState();
+    _setupRealtimeSubscription();
+  }
+
+  // 📡 THIS IS THE MAGIC: It listens to the cloud and updates the screen instantly!
+  void _setupRealtimeSubscription() {
+    Supabase.instance.client
+        .from('matches')
+        .stream(primaryKey: ['id'])
+        .eq('match_code', widget.matchCode)
+        .listen((List> data) {
+      if (data.isNotEmpty && mounted) {
+        final matchData = data.first;
+        setState(() {
+          _runs = matchData['runs'] ?? 0;
+          _wickets = matchData['wickets'] ?? 0;
+          _completedOvers = matchData['completed_overs'] ?? 0;
+          _balls = matchData['balls'] ?? 0;
+          _isLoading = false; // Hides the loading spinner once connected
+        });
       }
     });
   }
 
-  // Function to handle a wicket
-  void _addWicket() {
-    if (_wickets < 10) {
-      setState(() {
-        _wickets++;
-        _balls++;
-        if (_balls == 6) {
-          _completedOvers++;
-          _balls = 0;
-        }
-      });
+  // ☁️ THIS saves the score to the cloud every time you tap a button
+  Future<void> _updateCloudScore({required int runsToAdd, required int wicketsToAdd, required int ballsToAdd}) async {
+    int newRuns = _runs + runsToAdd;
+    int newWickets = _wickets + wicketsToAdd;
+    int newBalls = _balls + ballsToAdd;
+    int newOvers = _completedOvers;
+
+    if (newBalls == 6) {
+      newOvers++;
+      newBalls = 0;
+    }
+
+    try {
+      await Supabase.instance.client
+          .from('matches')
+          .update({
+            'runs': newRuns,
+            'wickets': newWickets,
+            'completed_overs': newOvers,
+            'balls': newBalls,
+          })
+          .eq('match_code', widget.matchCode);
+    } catch (e) {
+      debugPrint('Error updating score: $e');
     }
   }
 
-  // Function to handle extras (Wide / No Ball)
+  void _addRuns(int runs) {
+    _updateCloudScore(runsToAdd: runs, wicketsToAdd: 0, ballsToAdd: 1);
+  }
+
+  void _addWicket() {
+    if (_wickets < 10) {
+      _updateCloudScore(runsToAdd: 0, wicketsToAdd: 1, ballsToAdd: 1);
+    }
+  }
+
   void _addExtra(String type) {
-    setState(() {
-      _runs++; // Extras add 1 run to the total, but do NOT count as a legal ball
-    });
+    // Extras add 1 run but do NOT count as a legal ball
+    _updateCloudScore(runsToAdd: 1, wicketsToAdd: 0, ballsToAdd: 0);
   }
 
   @override
@@ -57,19 +93,21 @@ class _ScoringScreenState extends State<ScoringScreen> {
         backgroundColor: const Color(0xFF1C2541),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Column(
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: Color(0xFF2ECC71)))
+        : Column(
         children: [
           // SCOREBOARD SECTION
           Container(
             padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
             width: double.infinity,
             decoration: const BoxDecoration(
-              color: Color(0xFF1C2541), // Royal Blue
-              border: Border(bottom: BorderSide(color: Color(0xFF2ECC71), width: 4)), // Green accent line
+              color: Color(0xFF1C2541), 
+              border: Border(bottom: BorderSide(color: Color(0xFF2ECC71), width: 4)),
             ),
             child: Column(
               children: [
-                const Text('TOTAL SCORE', style: TextStyle(color: Colors.white54, fontSize: 14, letterSpacing: 2)),
+                const Text('TOTAL SCORE (LIVE)', style: TextStyle(color: Colors.white54, fontSize: 14, letterSpacing: 2, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text(
                   '$_runs - $_wickets',
@@ -126,7 +164,6 @@ class _ScoringScreenState extends State<ScoringScreen> {
     );
   }
 
-  // A helper widget to create those big, easy-to-tap circular/oval buttons
   Widget _buildScoreButton(String label, Color bgColor, VoidCallback onTap, {bool isWide = false, Color textColor = Colors.white}) {
     return GestureDetector(
       onTap: onTap,
