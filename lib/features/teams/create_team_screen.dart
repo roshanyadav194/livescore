@@ -14,7 +14,6 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
   bool _isLoading = false;
 
   Future<void> _saveTeam() async {
-    // 1. Check if the user filled out both boxes
     if (_nameController.text.isEmpty || _cityController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields'), backgroundColor: Colors.redAccent),
@@ -25,27 +24,21 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 2. This is where it will securely save to your Supabase Database
-      /*
+      // THIS IS THE MAGIC! It securely sends your team data straight to Supabase
       await Supabase.instance.client.from('teams').insert({
         'name': _nameController.text.trim(),
         'city': _cityController.text.trim(),
         'created_by': Supabase.instance.client.auth.currentUser?.id,
       });
-      */
-      
-      // Simulating a quick network save for now
-      await Future.delayed(const Duration(seconds: 1));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Team Created Successfully!', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            content: Text('Team Saved to Cloud Successfully!', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             backgroundColor: Color(0xFF2ECC71),
           ),
         );
-        // Go back to the previous screen after saving
-        Navigator.pop(context);
+        Navigator.pop(context); // Go back to Dashboard
       }
     } catch (error) {
       if (mounted) {
@@ -76,7 +69,6 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
             const Icon(Icons.shield_outlined, size: 80, color: Color(0xFF2ECC71)),
             const SizedBox(height: 24),
             
-            // TEAM NAME INPUT
             TextField(
               controller: _nameController,
               textCapitalization: TextCapitalization.words,
@@ -88,13 +80,12 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                 hintStyle: const TextStyle(color: Colors.white38),
                 prefixIcon: const Icon(Icons.sports_cricket, color: Colors.white54),
                 filled: true,
-                fillColor: const Color(0xFF1C2541), // Royal Blue
+                fillColor: const Color(0xFF1C2541),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
             ),
             const SizedBox(height: 16),
             
-            // CITY/LOCATION INPUT
             TextField(
               controller: _cityController,
               textCapitalization: TextCapitalization.words,
@@ -112,11 +103,10 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
             ),
             const SizedBox(height: 32),
             
-            // SAVE BUTTON
             ElevatedButton(
               onPressed: _isLoading ? null : _saveTeam,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2ECC71), // Cricket Green
+                backgroundColor: const Color(0xFF2ECC71),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
