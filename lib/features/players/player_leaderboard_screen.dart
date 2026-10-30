@@ -21,14 +21,12 @@ class _PlayerLeaderboardScreenState extends State<PlayerLeaderboardScreen> {
 
   Future<void> _fetchLeaderboards() async {
     try {
-      // 1. Fetch top 10 batters by total runs
       final battersData = await Supabase.instance.client
           .from('players')
           .select()
           .order('total_runs', ascending: false)
           .limit(10);
           
-      // 2. Fetch top 10 bowlers by total wickets
       final bowlersData = await Supabase.instance.client
           .from('players')
           .select()
@@ -73,9 +71,7 @@ class _PlayerLeaderboardScreenState extends State<PlayerLeaderboardScreen> {
             ? const Center(child: CircularProgressIndicator(color: Color(0xFF2ECC71)))
             : TabBarView(
                 children: [
-                  // ORANGE CAP: BATTERS LIST
                   _buildList(_topBatters, 'total_runs', 'Runs', Colors.orangeAccent),
-                  // PURPLE CAP: BOWLERS LIST
                   _buildList(_topBowlers, 'total_wickets', 'Wickets', Colors.purpleAccent),
                 ],
               ),
