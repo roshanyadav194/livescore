@@ -69,7 +69,6 @@ class _ScoringScreenState extends State<ScoringScreen> {
           })
           .eq('match_code', widget.matchCode);
           
-      // Check for a win in the 2nd Innings!
       if (_innings == 2 && _targetScore != null && newRuns >= _targetScore!) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -96,7 +95,6 @@ class _ScoringScreenState extends State<ScoringScreen> {
 
   void _addByeOrLegBye(int runs) => _updateCloudScore(runsToAdd: runs, wicketsToAdd: 0, ballsToAdd: 1);
 
-  // THIS IS THE NEW INNINGS LOGIC
   Future<void> _endInnings() async {
     if (_innings == 1) {
       int target = _runs + 1;
@@ -159,7 +157,6 @@ class _ScoringScreenState extends State<ScoringScreen> {
                   'Overs: $_completedOvers.$_balls',
                   style: const TextStyle(color: Colors.white, fontSize: 20),
                 ),
-                // NEW RUN CHASE DISPLAY
                 if (_innings == 2 && _targetScore != null) ...[
                   const SizedBox(height: 16),
                   Container(
@@ -178,9 +175,7 @@ class _ScoringScreenState extends State<ScoringScreen> {
               ],
             ),
           ),
-          
           const Spacer(),
-
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -217,11 +212,10 @@ class _ScoringScreenState extends State<ScoringScreen> {
                   children: [
                     _buildScoreButton('Byes\n(1)', Colors.grey, () => _addByeOrLegBye(1), isWide: true, fontSize: 16),
                     _buildScoreButton('Leg Byes\n(1)', Colors.grey, () => _addByeOrLegBye(1), isWide: true, fontSize: 16),
-                    // Hides the "End Innings" button if we are already in the 2nd Innings
                     if (_innings == 1)
                       _buildScoreButton('End\nInnings', const Color(0xFF1C2541), _endInnings, isWide: true, fontSize: 16, borderColor: Colors.redAccent)
                     else
-                      const SizedBox(width: 100, height: 70), // Empty space to keep layout balanced
+                      const SizedBox(width: 100, height: 70),
                   ],
                 ),
               ],
