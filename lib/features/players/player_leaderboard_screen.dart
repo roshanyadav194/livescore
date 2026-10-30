@@ -9,8 +9,8 @@ class PlayerLeaderboardScreen extends StatefulWidget {
 }
 
 class _PlayerLeaderboardScreenState extends State<PlayerLeaderboardScreen> {
-  List> _topBatters = [];
-  List> _topBowlers = [];
+  List<dynamic> _topBatters = [];
+  List<dynamic> _topBowlers = [];
   bool _isLoading = true;
 
   @override
@@ -35,8 +35,8 @@ class _PlayerLeaderboardScreenState extends State<PlayerLeaderboardScreen> {
           
       if (mounted) {
         setState(() {
-          _topBatters = List>.from(battersData);
-          _topBowlers = List>.from(bowlersData);
+          _topBatters = List<dynamic>.from(battersData);
+          _topBowlers = List<dynamic>.from(bowlersData);
           _isLoading = false;
         });
       }
@@ -79,7 +79,7 @@ class _PlayerLeaderboardScreenState extends State<PlayerLeaderboardScreen> {
     );
   }
 
-  Widget _buildList(List> players, String statKey, String statLabel, Color highlightColor) {
+  Widget _buildList(List<dynamic> players, String statKey, String statLabel, Color highlightColor) {
     if (players.isEmpty) {
       return const Center(child: Text('No player data yet.', style: TextStyle(color: Colors.white54, fontSize: 16)));
     }
