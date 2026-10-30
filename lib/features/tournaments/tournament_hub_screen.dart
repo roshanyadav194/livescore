@@ -20,7 +20,6 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> {
 
   Future<void> _fetchStandings() async {
     try {
-      // THIS reads directly from the automated SQL view you just created!
       final data = await Supabase.instance.client
           .from('league_standings')
           .select();
@@ -59,7 +58,6 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> {
             ),
             const SizedBox(height: 24),
             
-            // LEAGUE TABLE
             Expanded(
               child: _isLoading 
                 ? const Center(child: CircularProgressIndicator(color: Color(0xFF2ECC71)))
@@ -77,7 +75,8 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> {
                         child: SingleChildScrollView(
                           child: DataTable(
                             columnSpacing: 28,
-                            headingRowColor: MaterialStateProperty.all(const Color(0xFF0B132B)), 
+                            // THE FIX IS APPLIED HERE:
+                            headingRowColor: WidgetStateProperty.all(const Color(0xFF0B132B)), 
                             headingTextStyle: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
                             dataTextStyle: const TextStyle(color: Colors.white, fontSize: 16),
                             columns: const [
@@ -89,7 +88,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> {
                               DataColumn(label: Text('Pts')),
                             ],
                             rows: _standings.asMap().entries.map((entry) {
-                              int index = entry.key; // Generates the rank number dynamically
+                              int index = entry.key; 
                               var team = entry.value;
                               return DataRow(
                                 cells: [
