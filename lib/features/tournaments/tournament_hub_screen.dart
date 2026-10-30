@@ -61,46 +61,32 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> {
             Expanded(
               child: _isLoading 
                 ? const Center(child: CircularProgressIndicator(color: Color(0xFF2ECC71)))
-                : Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1C2541),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SingleChildScrollView(
-                          child: DataTable(
-                            columnSpacing: 28,
-                            headingTextStyle: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
-                            dataTextStyle: const TextStyle(color: Colors.white, fontSize: 16),
-                            columns: const [
-                              DataColumn(label: Text('#')),
-                              DataColumn(label: Text('Team')),
-                              DataColumn(label: Text('P')),
-                              DataColumn(label: Text('W')),
-                              DataColumn(label: Text('L')),
-                              DataColumn(label: Text('Pts')),
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SingleChildScrollView(
+                      child: DataTable(
+                        columns: const [
+                          DataColumn(label: Text('#')),
+                          DataColumn(label: Text('Team')),
+                          DataColumn(label: Text('P')),
+                          DataColumn(label: Text('W')),
+                          DataColumn(label: Text('L')),
+                          DataColumn(label: Text('Pts')),
+                        ],
+                        rows: _standings.asMap().entries.map((entry) {
+                          int index = entry.key; 
+                          var team = entry.value;
+                          return DataRow(
+                            cells: [
+                              DataCell(Text('${index + 1}')),
+                              DataCell(Text(team['team'] ?? 'Unknown')),
+                              DataCell(Text(team['p'].toString())),
+                              DataCell(Text(team['w'].toString())),
+                              DataCell(Text(team['l'].toString())),
+                              DataCell(Text(team['pts'].toString())),
                             ],
-                            rows: _standings.asMap().entries.map((entry) {
-                              int index = entry.key; 
-                              var team = entry.value;
-                              return DataRow(
-                                cells: [
-                                  DataCell(Text('${index + 1}', style: const TextStyle(color: Colors.white54))),
-                                  DataCell(Text(team['team'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold))),
-                                  DataCell(Text(team['p'].toString())),
-                                  DataCell(Text(team['w'].toString())),
-                                  DataCell(Text(team['l'].toString())),
-                                  DataCell(Text(team['pts'].toString(), style: const TextStyle(color: Color(0xFF2ECC71), fontWeight: FontWeight.bold))),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
+                          );
+                        }).toList(),
                       ),
                     ),
                   ),
