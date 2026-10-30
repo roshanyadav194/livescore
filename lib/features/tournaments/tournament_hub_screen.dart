@@ -9,7 +9,7 @@ class TournamentHubScreen extends StatefulWidget {
 }
 
 class _TournamentHubScreenState extends State<TournamentHubScreen> {
-  List> _standings = [];
+  List<dynamic> _standings = [];
   bool _isLoading = true;
 
   @override
@@ -26,7 +26,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> {
       
       if (mounted) {
         setState(() {
-          _standings = List>.from(data);
+          _standings = List<dynamic>.from(data);
           _isLoading = false;
         });
       }
