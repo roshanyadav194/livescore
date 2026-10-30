@@ -75,7 +75,6 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> {
                         child: SingleChildScrollView(
                           child: DataTable(
                             columnSpacing: 28,
-                            // THE FIX IS APPLIED HERE:
                             headingRowColor: WidgetStateProperty.all(const Color(0xFF0B132B)), 
                             headingTextStyle: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
                             dataTextStyle: const TextStyle(color: Colors.white, fontSize: 16),
